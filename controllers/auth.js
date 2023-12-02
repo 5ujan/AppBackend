@@ -5,17 +5,16 @@ const {BadRequestError, NotFoundError, UnauthenticatedError} = require('../middl
 const register = async(req, res, next)=>{
     try{
 
-        const {name, email, password, isOrg} = req.body
+        const {name, email, isOrg, phone} = req.body
         const alreadyExists = await User.findOne({email})
         if(alreadyExists){
             
             next(new BadRequestError("Account with the email already exists"))
             
         }else{
-        const user= await User.create({name, email, password, isOrg})
-        const token= await user.createJWT()
+        const user= await User.create({name, email, isOrg, phone})
 
-        res.json({name: user.name, token})
+        res.json({msg:"new user created", user:{name: user.name, userID:user._id }})
     }
 }catch(err){
     console.log(err);
@@ -25,18 +24,13 @@ const register = async(req, res, next)=>{
 const login = async(req, res, next)=>{
     try{
 
-        const  {email, password } = req.body
+        const  {email } = req.body
         const user = await User.findOne({email})
         if(!user){
-            
-            next(new NotFoundError("Account with the email doesn't exists"));
-            
+            res.json({msg:"no existing user"})
         }else{
-            if(!user.verifyPassword(password)){
-                next(new UnauthenticatedError("Wrong password"))
-            }
-            const token = await user.createJWT()
-            res.json({name: user.name, token})
+            
+            res.json({msg:"User found", user:{name: user.name, userID:user._id}})
         }
     }catch(err){next(err)}
     }

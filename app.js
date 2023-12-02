@@ -8,12 +8,11 @@ const {errorHandler} = require('./middleware/handleErrors')
 const authRouter= require("./routes/auth");
 const mainRouter= require("./routes/main");
 const userRouter= require("./routes/user");
-const authenticate = require('./middleware/authentication');
 
 
 app.use(express.json())
-app.use('/',  authRouter)         //login or register, doesn't require authentication
-app.use('/', authenticate, mainRouter, userRouter)
+        //login or register, doesn't require authentication
+app.use('/', authRouter, mainRouter, userRouter)
 
 
 app.use(errorHandler);

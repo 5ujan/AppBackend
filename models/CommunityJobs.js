@@ -23,10 +23,7 @@ const CommunityJobSchema= new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    assignedTo:{
-        type:String,
-    },
-    applications:{
+    volunteers:{
         type:[String]
     }
 

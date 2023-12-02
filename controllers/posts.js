@@ -57,47 +57,6 @@ const createJob = async (req, res, next) => {
     }
  
 };
-
-const deleteJob = async (req, res, next) => {
-  try {
-    const { jobID } = req.params;
-    const job =
-      (await PaidJob.findOne({ _id: jobID })) ||
-      (await CommunityJob.findOne({ _id: jobID }));
-    if (job.createdBy !== req.user.userID) {
-      next(new UnauthenticatedError("Not authorized to delete"));
-    } else {
-      (await PaidJob.findOneAndDelete({ _id: jobID })) ||
-        (await CommunityJob.findOneAndDelete({ _id: jobID }));
-    }
-    res.json({ msg: "job deleted" });
-  } catch (err) {
-    next(err);
-  }
-};
-const modifyJob = async (req, res, next) => {
-  try {
-    const { jobID } = req.params;
-
-    let job = await PaidJob.findOne({ _id: jobID });
-    if (!job) job = await CommunityJob.findOne({ _id: jobID });
-
-    if (job) {
-      if (job.createdBy !== req.user.userID) {
-        next(new UnauthenticatedError("Not authorized to modify"));
-      } else {
-        await PaidJob.findByIdAndUpdate(jobID, req.body);
-        await CommunityJob.findByIdAndUpdate(jobID, req.body);
-        res.json({ msg: "job updated" });
-      }
-    } else {
-      next(new NotFoundError("Job not found"));
-    }
-  } catch (err) {
-    next(err);
-  }
-};
-
 const applyToJob = async (req, res, next) => {
   try {
     const { jobID } = req.params;
@@ -108,7 +67,7 @@ const applyToJob = async (req, res, next) => {
     else {
       (await CommunityJob.findByIdAndUpdate(
         jobID,
-        { $push: { applications: req.user.userID } },
+        { $push: { volunteers: req.user.userID } },
         { new: true }
       )) ||
         PaidJob.findByIdAndUpdate(
@@ -126,21 +85,43 @@ const applyToJob = async (req, res, next) => {
 const closeJob = async (req, res, next) => {
   try {
     const { jobID } = req.params;
-    const rating = req.body.rating;
-    const job =
-      (await PaidJob.findById(jobID)) || (await CommunityJob.findById(jobID));
+    const {rating, isComplete} = req.body;
+    
+    const job =(await PaidJob.findById(jobID)) || (await CommunityJob.findById(jobID));
     if (!job) next(new NotFoundError("Could not find job"));
     else {
-      const userID = job.assignedTo;
-      await User.findByIdAndUpdate(
-        userID,
-        { $push: { ratings:  rating  } },
-        { new: true }
-      );
-      res.status(200).json({ msg: "Job closed" });
-    }
-  } catch (err) {
-    next(err);
+        if(isComplete){
+        const userID = job.assignedTo;
+        if (job.createdBy !== req.user.userID) {
+          next(new UnauthenticatedError("Not authorized to delete"));
+        } else {
+          const paid = await PaidJob.findOneAndDelete({ _id: jobID })
+            await CommunityJob.findOneAndDelete({ _id: jobID })
+          if(paid) {await User.findByIdAndUpdate(
+            userID,
+            { $push: { ratings: rating }, $push: { totalPaid: (totalPaid+1) } },
+            { new: true }
+          )}
+          else {await User.findByIdAndUpdate(
+            userID,
+            { $push: { ratings: rating }, $push: { totalCommunity: (totalPaid+1) } },
+            { new: true }
+          )}
+        }
+          res.status(200).json({ msg: "Job closed" });
+        }else{
+          if (job.createdBy !== req.user.userID) {
+            next(new UnauthenticatedError("Not authorized to delete"));
+          } else {
+            (await PaidJob.findOneAndDelete({ _id: jobID })) ||
+              (await CommunityJob.findOneAndDelete({ _id: jobID }));
+          }
+          res.json({ msg: "job deleted" });
+        }
+
+      }
+      } catch (err) {
+        next(err);
   }
 };
 
@@ -148,9 +129,9 @@ module.exports = {
   getCommunityJobs,
   getPaidJobs,
   createJob,
-  deleteJob,
+
   getJob,
-  modifyJob,
+ 
   applyToJob,
   closeJob,
 };

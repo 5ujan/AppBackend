@@ -67,8 +67,25 @@ const deleteUser = async (req, res, next) => {
         { $push: { incompleteJobs:  jobID  } },
         { new: true }
       )
-       let temp= await PaidJob.findByIdAndUpdate(jobID,{ assignedTo: applicantID , applications: [] },{ new: true })
-             ||await CommunityJob.findByIdAndUpdate(jobID,{ assignedTo: applicantID ,applications: [] },{ new: true })
+      await PaidJob.findByIdAndUpdate(jobID,{ assignedTo: applicantID , applications: [] },{ new: true })
+             
+        res.status(200).json({ msg: "job assigned" });
+      }catch(err){next(err)}
+    };
+    
+  const recruit = async (req, res, next) => {
+    try{
+      
+      const {jobID}= req.params
+
+      const { applicantID } = req.body;
+      await User.findByIdAndUpdate(
+        applicantID,
+        { $push: { incompleteJobs:  jobID  } },
+        { new: true }
+      )
+      await CommunityJob.findByIdAndUpdate(jobID,{  $push:{volunteers:applicantID} },{ new: true })
+             
         res.status(200).json({ msg: "job assigned" });
       }catch(err){next(err)}
     };
@@ -79,6 +96,7 @@ const deleteUser = async (req, res, next) => {
       getUser,
       assignApplicant,
       listApplicants,
+      recruit
     };
     
     
