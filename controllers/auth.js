@@ -14,7 +14,7 @@ const register = async(req, res, next)=>{
         }else{
         const user= await User.create({name, email, isOrg, phone})
 
-        res.json({msg:"new user created", user:{name: user.name, userID:user._id }})
+        res.json({msg:"new user created", user:{name: user.name, userID:user._id , isOrg:user.isOrg}})
     }
 }catch(err){
     console.log(err);
@@ -30,7 +30,7 @@ const login = async(req, res, next)=>{
             res.json({msg:"no existing user"})
         }else{
             
-            res.json({msg:"User found", user:{name: user.name, userID:user._id}})
+            res.json({msg:"User found", user:{name: user.name, userID:user._id, isOrg:user.isOrg}})
         }
     }catch(err){next(err)}
     }
