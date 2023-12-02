@@ -34,8 +34,8 @@ const getJob = async (req, res, next) => {
 };
 
 const createJob = async (req, res, next) => {
-    console.log(req.user)
-    const user = await User.findById(req.user.userID);
+    console.log(req)
+    const user = await User.findById(req.body.id);
     console.log(user)
     let newJob; 
     if(user){
@@ -67,12 +67,12 @@ const applyToJob = async (req, res, next) => {
     else {
       (await CommunityJob.findByIdAndUpdate(
         jobID,
-        { $push: { volunteers: req.user.userID } },
+        { $push: { volunteers: req.body.user.userID } },
         { new: true }
       )) ||
         PaidJob.findByIdAndUpdate(
           jobID,
-          { $push: { applications: req.user.userID } },
+          { $push: { applications: req.body.user.userID } },
           { new: true }
         );
       res.status(200).json({ msg: "Applied to job" });
@@ -92,7 +92,7 @@ const closeJob = async (req, res, next) => {
     else {
         if(isComplete){
         const userID = job.assignedTo;
-        if (job.createdBy !== req.user.userID) {
+        if (job.createdBy !== req.body.user.userID) {
           next(new UnauthenticatedError("Not authorized to delete"));
         } else {
           const paid = await PaidJob.findOneAndDelete({ _id: jobID })
@@ -110,7 +110,7 @@ const closeJob = async (req, res, next) => {
         }
           res.status(200).json({ msg: "Job closed" });
         }else{
-          if (job.createdBy !== req.user.userID) {
+          if (job.createdBy !== req.body.user.userID) {
             next(new UnauthenticatedError("Not authorized to delete"));
           } else {
             (await PaidJob.findOneAndDelete({ _id: jobID })) ||

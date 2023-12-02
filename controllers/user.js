@@ -9,10 +9,10 @@ const {
 
 const modifyUser = async (req, res, next) => {
   try {
-    const user = await User.findOne({ _id: req.user.userID });
+    const user = await User.findOne({ _id: req.body.user.userID });
     if (!user) next(new NotFoundError("user not found"));
     else {
-      await User.findByIdAndUpdate(req.user.userID, req.body);
+      await User.findByIdAndUpdate(req.body.user.userID, req.body);
       res.status(200).json({ msg: "modified user" });
     }
   } catch (err) {
@@ -35,10 +35,10 @@ const getUser = async (req, res, next) => {
 const deleteUser = async (req, res, next) => {
   try{
 
-    const user = await User.findOne({ _id: req.user.userID });
+    const user = await User.findOne({ _id: req.body.user.userID });
     if (!user) next(new NotFoundError("user not found"));
     else {
-      await User.findByIdAndDelete(req.user.userID, req.body);
+      await User.findByIdAndDelete(req.body.user.userID, req.body);
       res.status(200).json({ msg: "Successfully deleted" });
     }
   }catch(err){next(err)}
